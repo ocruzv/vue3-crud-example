@@ -5,7 +5,7 @@
         Please select the campaign of this perk
 
         <q-select
-          v-model.number="perk.campaign_id"
+          v-model="campaign"
           :options="campaigns"
           label="Choose campaign..."
         />
@@ -14,7 +14,7 @@
           <q-btn
             color="primary"
             label="Continue"
-            :disable="!perk.campaign_id"
+            :disable="!campaign"
             @click="step = 2"
           />
         </q-stepper-navigation>
@@ -96,7 +96,9 @@
   const $q = useQuasar();
 
   const step = ref<number>(1);
-  const perk = ref<Partial<Perk>>({
+  const perk = ref<Perk>({
+    id: 0,
+    campaign_id: 0,
     active: true,
     title: '',
     image_url: '',
@@ -110,16 +112,21 @@
     { label: 'Campaign 2', value: 2 },
     { label: 'Campaign 3', value: 3 },
   ]);
+  const campaign = ref({ label: 'Campaign 1', value: 1 });
 
   function savePerk() {
     if (perk.value.id) {
-      perksStore.updatePerk(perk.value.id, perk.value);
+      perksStore.updatePerk(perk.value.id, {
+        ...perk.value,
+        campaign_id: campaign.value.value,
+      });
 
       $q.notify('Perk Updated!');
     } else {
       perksStore.addPerk({
         ...perk.value,
         id: Math.floor(Math.random() * 10000000 + 1),
+        campaign_id: campaign.value.value,
       });
 
       $q.notify('Perk Added!');
@@ -139,6 +146,10 @@
           ...perk.value,
           ...existentPerk,
         };
+
+        campaign.value = campaigns.value?.find(
+          (campaign) => campaign.value === perk.value.campaign_id
+        );
       }
     }
   });
